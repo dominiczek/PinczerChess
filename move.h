@@ -2,9 +2,10 @@
 #define MOVE_H
 
 #include "allMoves.h"
+#include "constants.h"
 
 struct Move {
-	int piece;
+	PIECE_T piece;
 	U64 maskFrom;
 	U64 maskTo;
 	int promotion;
@@ -13,33 +14,32 @@ struct Move {
 	U64 enPessant;
 };
 
-struct MovesList {
-	Move moves[256];
-	Move *movesHead = moves;
+class MovesList {
 
+public:
+	Move moves[256];
 	Move captures[128];
+private:
+	Move *movesHead = moves;
 	Move *capturesHead = captures;
+public:
+	inline void addMove(const Move &move) {
+		*movesHead++=move;
+	}
+	inline void addCapture(const Move &move) {
+		*capturesHead++=move;
+	}
+	inline int getMovesSize() {
+		return movesHead - moves;
+	}
+	inline int getCapturesSize() {
+		return capturesHead - captures;
+	}
 };
 
 Move* fromString(char* str);
 
-inline void addMove(MovesList &list,const Move &move) {
-	*list.movesHead++=move;
-}
-
-inline int getMovesSize(const MovesList &list) {
-	return list.movesHead - list.moves;
-}
-
-inline void addCapture(MovesList &list, const Move &move) {
-	*list.capturesHead++=move;
-}
-
-inline int getCapturesSize(const MovesList &list) {
-	return list.capturesHead - list.captures;
-}
-
-inline Move createMove(const int piece, const U64 from, const U64 to) {
+inline Move createMove(const PIECE_T piece, const U64 from, const U64 to) {
 	Move move;
 	
 	move.piece = piece;
@@ -53,7 +53,7 @@ inline Move createMove(const int piece, const U64 from, const U64 to) {
 	return move;	
 }
 
-inline Move createMove(const int piece, const U64 from, const U64 to, const U64 enPessant) {
+inline Move createMove(const PIECE_T piece, const U64 from, const U64 to, const U64 enPessant) {
 	Move move;
 	
 	move.piece = piece;
@@ -67,7 +67,7 @@ inline Move createMove(const int piece, const U64 from, const U64 to, const U64 
 	return move;	
 }
 
-inline Move createPromotionMove(const int piece, const U64 from, const U64 to, const int promotion) {
+inline Move createPromotionMove(const PIECE_T piece, const U64 from, const U64 to, const int promotion) {
 	Move move;
 	
 	move.piece = piece;

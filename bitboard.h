@@ -1,9 +1,7 @@
 #ifndef BITBOARD
 #define BITBOARD
 
-typedef unsigned int SQUARE_T;
-typedef unsigned long long U64;
-
+#include "constants.h"
 
 const U64 TWO_TO_63 = 9223372036854775808;
 const U64 FULL_FIRST_RANK = 255;
@@ -15,16 +13,16 @@ inline U64 moveForward(const U64 sqrMask, const int delta, const bool side) {
 	return side? sqrMask >> delta : sqrMask << delta;
 }
 
+inline U64 moveForward(const U64 sqrMask, const int deltaWhite, const int deltaBlack, const bool side) {
+	return side? sqrMask >> deltaBlack : sqrMask << deltaWhite;
+}
+
 inline U64 moveBackward(const U64 sqrMask, const int delta, const bool side) {
 	return side? sqrMask << delta : sqrMask >> delta;
 }
 
 inline U64 moveBackward(const U64 sqrMask, const int deltaWhite, const int deltaBlack, const bool side) {
 	return side? sqrMask << deltaBlack : sqrMask >> deltaWhite;
-}
-
-inline U64 moveForward(const U64 sqrMask, const int deltaWhite, const int deltaBlack, const bool side) {
-	return side? sqrMask >> deltaBlack : sqrMask << deltaWhite;
 }
 
 inline SQUARE_T getFirstPiece2(const U64 &board) {
@@ -62,12 +60,7 @@ inline U64 popFirstPiece3(U64 &board, SQUARE_T &pos) {
 	return old - board;
 }
 
-
-//inline U64 getPiecesOnRank2(U64 board, int rank) {
-//	return board & (FULL_FIRST_RANK<<(rank*8));
-//}
-
-inline U64 getPiecesOnRank3(U64 board, int rankShift) {
+inline U64 getPiecesOnRank(U64 board, int rankShift) {
 	return board & (FULL_FIRST_RANK<<(rankShift));
 }
 
