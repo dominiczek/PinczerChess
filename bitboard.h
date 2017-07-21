@@ -31,14 +31,11 @@ inline SQUARE_T getFirstPiece2(const U64 &board) {
 
 inline U64 getFirstPieceMask(const U64 &board) {
 	return board & (~(board - 1LL));
+//	return board & (-board);
 }
 
 inline U64 getLastPieceMask(const U64 &board) {
 	return TWO_TO_63 >> __builtin_clzll(board);
-}
-
-inline SQUARE_T getLastPiece2(const U64 &board) {
-	return 63 - __builtin_clzll(board);
 }
 
 inline SQUARE_T popFirstPiece2(U64 *board) {

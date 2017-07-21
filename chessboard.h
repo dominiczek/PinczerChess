@@ -10,43 +10,120 @@ using namespace std;
 
 
 
-struct ChessBoard {
+class ChessBoard {
 	
+public:
 	U64 allPieces;
-	
 	U64 pieces[2];
 	
 	U64 pieces2[2][6];
-	
+	bool sideToMove;
+
 	bool castleKingW;
 	bool castleQueenW;
 	bool castleKingB;
 	bool castleQueenB;
 	
-	bool sideToMove;
 	U64 enPessantSqr;
 	U64 enPessantPawn;
 
 
+	inline ChessBoard makeMove(const Move& move) const {
+
+		ChessBoard copy = createCopy(*this);
+
+		copy.removePiece(move.maskFrom, move.piece, sideToMove);
+		copy.addPiece(move.maskTo, move.piece, sideToMove);
+
+		copy.enPessantSqr = move.enPessant;
+		copy.enPessantPawn = move.maskTo;
+
+		copy.sideToMove = !sideToMove;
+
+		return copy;
+	}
+
+	inline ChessBoard makePromotion(const Move& move) const {
+
+		ChessBoard copy = createCopy(*this);
+
+		copy.removePiece(move.maskFrom, PAWN, sideToMove);
+		copy.addPiece(move.maskTo, move.promotion, sideToMove);
+
+		copy.enPessantSqr = 0;
+
+		copy.sideToMove = !sideToMove;
+
+		return copy;
+	}
+
+	inline ChessBoard makeCapture(const Move& move) const {
+
+		ChessBoard copy = createCopy(*this);
+
+
+		copy.take(move.maskTo, !sideToMove);
+
+		PIECE_T pieceToAdd = move.promotion ? move.promotion : move.piece;
+
+		copy.conditionalRemovePiece(enPessantPawn, PAWN, !sideToMove, move.piece == PAWN && move.maskTo == enPessantSqr);
+		copy.removePiece(move.maskFrom, move.piece, sideToMove);
+		copy.addPiece(move.maskTo, pieceToAdd, sideToMove);
+
+		copy.enPessantSqr = 0;
+
+		copy.sideToMove = !sideToMove;
+
+		return copy;
+	}
+
+private:
+
+	inline ChessBoard createCopy(const ChessBoard &board) const {
+		ChessBoard copy;
+		copy.allPieces = allPieces;
+
+		copy.pieces[WHITE] = pieces[WHITE];
+		copy.pieces[BLACK] = pieces[BLACK];
+
+		for(int i=0; i<6;i++) {
+			copy.pieces2[WHITE][i] = pieces2[WHITE][i];
+		}
+		for(int i=0; i<6;i++) {
+			copy.pieces2[BLACK][i] = pieces2[BLACK][i];
+		}
+
+		return copy;
+	}
+
 	inline void addPiece(const U64 mask, const PIECE_T piece,const bool side) {
-		pieces[side] |= mask;
-		allPieces |= mask;
-		pieces2[side][piece] |= mask;
+		pieces[side] += mask;
+		allPieces += mask;
+		pieces2[side][piece] += mask;
 	}
 
 	inline void removePiece(const U64 mask, const PIECE_T piece, const bool side) {
-		pieces[side] ^= mask;
-		allPieces ^= mask;
-		pieces2[side][piece] ^= mask;
+		pieces[side] -= mask;
+		allPieces -= mask;
+		pieces2[side][piece] -= mask;
 	}
 
 	inline void conditionalRemovePiece(U64 mask, const PIECE_T piece, const bool side, bool condition) {
 		mask*=condition;
-		pieces[side] ^= mask;
-		allPieces ^= mask;
-		pieces2[side][piece] ^= mask;
+		pieces[side] -= mask;
+		allPieces -= mask;
+		pieces2[side][piece] -= mask;
 	}
 
+	inline void take(U64 mask, bool side) {
+		allPieces &= ~mask;
+		pieces[side] &= allPieces;
+		pieces2[side][QUEEN] &= allPieces;
+		pieces2[side][ROOK] &= allPieces;
+		pieces2[side][BISHOP] &= allPieces;
+		pieces2[side][KNIGHT] &= allPieces;
+		pieces2[side][PAWN] &= allPieces;
+	}
 
 };
 
@@ -84,17 +161,21 @@ void addNewKing(ChessBoard &board, int square, bool side);
 
 
 inline void generateMovesAndCaptures(const ChessBoard &board, const U64 sqrMask, const int piece, const U64 attacks, MovesList &moveList) {
+	if(!attacks) {
+		return;
+	}
+
 	U64 legalMoves = attacks & (attacks^board.allPieces);;
 	U64 captures = attacks & board.pieces[!board.sideToMove];
 
 	U64 to;
 	while(captures) {
 		to = popFirstPiece3(captures);
-		moveList.addCapture(createMove(piece, sqrMask, to));
+		moveList.addCapture(Move(piece, sqrMask, to));
 	}
 	while(legalMoves) {
 		to = popFirstPiece3(legalMoves);
-		moveList.addMove(createMove(piece, sqrMask, to));
+		moveList.addMove(Move(piece, sqrMask, to));
 	}
 }
 
@@ -186,7 +267,7 @@ inline bool checkAttacks(const ChessBoard& board, MovesList& movesList) {
 	U64 queensToMove = board.pieces2[sideToMove][QUEEN];
 	while(queensToMove) {
 		toMove=popFirstPiece2(&queensToMove);
-		attacks = getQueenAttacks(board.allPieces, toMove);
+		attacks = getQueenCaptures(board.allPieces, toMove);
 		if(attacks & opositeKing) {
 			return true;
 		}
@@ -195,7 +276,7 @@ inline bool checkAttacks(const ChessBoard& board, MovesList& movesList) {
 	U64 bishopsToMove = board.pieces2[sideToMove][BISHOP];
 	while(bishopsToMove) {
 		toMove=popFirstPiece2(&bishopsToMove);
-		attacks = getBishopAttacks(board.allPieces, toMove);
+		attacks = getBishopCaptures(board.allPieces, toMove);
 		if(attacks & opositeKing) {
 			return true;
 		}
@@ -204,7 +285,7 @@ inline bool checkAttacks(const ChessBoard& board, MovesList& movesList) {
 	U64 rooksToMove = board.pieces2[sideToMove][ROOK];
 	while(rooksToMove) {
 		toMove=popFirstPiece2(&rooksToMove);
-		attacks = getRookAttacks(board.allPieces, toMove);
+		attacks = getRookCaptures(board.allPieces, toMove);
 		if(attacks & opositeKing) {
 			return true;
 		}
@@ -240,71 +321,11 @@ inline bool checkAttacks(const ChessBoard& board, MovesList& movesList) {
 	return false;
 }
 
-inline void take(ChessBoard &board, U64 mask, bool side) {
-	board.allPieces &= ~mask;
-	board.pieces[side] &= board.allPieces;
-	board.pieces2[side][QUEEN] &= board.allPieces;
-	board.pieces2[side][ROOK] &= board.allPieces;
-	board.pieces2[side][BISHOP] &= board.allPieces;
-	board.pieces2[side][KNIGHT] &= board.allPieces;
-	board.pieces2[side][PAWN] &= board.allPieces;
-}
-
 bool isOccupated(U64 mask, U64 board); 
 
 
 inline int getPieceToAddForPawn(PIECE_T piece, int promotion) {
 	return piece*(!promotion) + promotion;
-}
- 
-inline ChessBoard makeMove(const ChessBoard& board, const Move& move) {
-	ChessBoard copy;
-	copy.allPieces = board.allPieces;
-
-	copy.pieces[WHITE] = board.pieces[WHITE];
-	copy.pieces[BLACK] = board.pieces[BLACK];
-	
-	for(int i=0; i<6;i++) {
-		copy.pieces2[WHITE][i] = board.pieces2[WHITE][i];
-		copy.pieces2[BLACK][i] = board.pieces2[BLACK][i];	
-	}
-
-	PIECE_T pieceToAdd = move.promotion ? move.promotion : move.piece;
-	
-	copy.removePiece(move.maskFrom, move.piece, board.sideToMove);
-	copy.addPiece(move.maskTo, pieceToAdd, board.sideToMove);
-
-	copy.enPessantSqr = move.enPessant;
-	copy.enPessantPawn = move.maskTo;
-
-	copy.sideToMove = !board.sideToMove;	
-	return copy;
-}
-
-inline ChessBoard makeCapture(const ChessBoard& board, const Move& move) {
-	ChessBoard copy;
-	copy.allPieces = board.allPieces;
-
-	copy.pieces[WHITE] = board.pieces[WHITE];
-	copy.pieces[BLACK] = board.pieces[BLACK];
-
-	for(int i=0; i<6;i++) {
-		copy.pieces2[WHITE][i] = board.pieces2[WHITE][i];
-		copy.pieces2[BLACK][i] = board.pieces2[BLACK][i];
-	}
-
-	copy.enPessantSqr = 0;
-
-	take(copy, move.maskTo, !board.sideToMove);
-
-	PIECE_T pieceToAdd = move.promotion ? move.promotion : move.piece;
-
-	copy.conditionalRemovePiece(board.enPessantPawn, PAWN, !board.sideToMove, move.piece == PAWN && move.maskTo == board.enPessantSqr);
-	copy.removePiece(move.maskFrom, move.piece, board.sideToMove);
-	copy.addPiece(move.maskTo, pieceToAdd, board.sideToMove);
-
-	copy.sideToMove = !board.sideToMove;
-	return copy;
 }
 
 inline int getFirstPawnRank(bool side) {

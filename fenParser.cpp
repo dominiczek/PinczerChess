@@ -92,7 +92,7 @@ ChessBoard parseFen(ChessBoard& board, char* fenString) {
 	stringIndex++;
 	
 	c = fenString[++stringIndex];
-	if(c != '-') {
+	if(c != '-' && c!='\0') {
 		cout<<c;
 		enpessant[0] = c;
 		c = fenString[++stringIndex];
@@ -111,7 +111,6 @@ ChessBoard parseFen(ChessBoard& board, char* fenString) {
 			board.enPessantPawn = board.enPessantSqr>>8;
 		}
 		
-		board.enPessantPawn = board.enPessantSqr = 0;
 	}
 	
 	return board;
