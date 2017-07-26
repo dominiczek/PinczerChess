@@ -105,11 +105,11 @@ ChessBoard parseFen(ChessBoard& board, char* fenString) {
 		cout<<"EN - "<<enpessantSqr<<endl;
 		board.enPessantSqr = 1LL<<(enpessantSqr);
 		
-		if(board.sideToMove) {
-			board.enPessantPawn = board.enPessantSqr<<8;	
-		} else {
-			board.enPessantPawn = board.enPessantSqr>>8;
-		}
+//		if(board.sideToMove) {
+////			board.enPessantPawn = board.enPessantSqr<<8;b
+//		} else {
+//			board.enPessantPawn = board.enPessantSqr>>8;
+//		}
 		
 	}
 	

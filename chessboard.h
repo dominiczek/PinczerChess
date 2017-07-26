@@ -13,7 +13,7 @@ using namespace std;
 class ChessBoard {
 	
 public:
-	U64 allPieces;
+	U64 all_pieces;
 	U64 pieces[2];
 	
 	U64 pieces2[2][6];
@@ -25,8 +25,10 @@ public:
 	bool castleQueenB;
 	
 	U64 enPessantSqr;
-	U64 enPessantPawn;
 
+	ChessBoard() {
+
+	}
 
 	inline ChessBoard makeMove(const Move& move) const {
 
@@ -36,7 +38,6 @@ public:
 		copy.addPiece(move.maskTo, move.piece, sideToMove);
 
 		copy.enPessantSqr = move.enPessant;
-		copy.enPessantPawn = move.maskTo;
 
 		copy.sideToMove = !sideToMove;
 
@@ -66,7 +67,10 @@ public:
 
 		PIECE_T pieceToAdd = move.promotion ? move.promotion : move.piece;
 
-		copy.conditionalRemovePiece(enPessantPawn, PAWN, !sideToMove, move.piece == PAWN && move.maskTo == enPessantSqr);
+		if(move.piece == PAWN && move.maskTo == enPessantSqr) {
+			copy.removePiece(moveForward(enPessantSqr, 8, !sideToMove), PAWN, !sideToMove);
+		}
+
 		copy.removePiece(move.maskFrom, move.piece, sideToMove);
 		copy.addPiece(move.maskTo, pieceToAdd, sideToMove);
 
@@ -77,11 +81,32 @@ public:
 		return copy;
 	}
 
+	inline U64 allPieces() const {
+		return all_pieces;
+	}
+
+	inline U64 opositePieces() const {
+		return pieces[!sideToMove];
+	}
+
+	inline U64 opositePieces(PIECE_T piece) const {
+		return pieces2[!sideToMove][piece];
+	}
+
+	inline U64 opositeKing() const {
+		return pieces2[!sideToMove][KING];
+	}
+
+	inline U64 myPieces(PIECE_T piece) const {
+		return pieces2[sideToMove][piece];
+	}
+
+
 private:
 
 	inline ChessBoard createCopy(const ChessBoard &board) const {
 		ChessBoard copy;
-		copy.allPieces = allPieces;
+		copy.all_pieces = all_pieces;
 
 		copy.pieces[WHITE] = pieces[WHITE];
 		copy.pieces[BLACK] = pieces[BLACK];
@@ -98,31 +123,24 @@ private:
 
 	inline void addPiece(const U64 mask, const PIECE_T piece,const bool side) {
 		pieces[side] += mask;
-		allPieces += mask;
+		all_pieces += mask;
 		pieces2[side][piece] += mask;
 	}
 
 	inline void removePiece(const U64 mask, const PIECE_T piece, const bool side) {
 		pieces[side] -= mask;
-		allPieces -= mask;
-		pieces2[side][piece] -= mask;
-	}
-
-	inline void conditionalRemovePiece(U64 mask, const PIECE_T piece, const bool side, bool condition) {
-		mask*=condition;
-		pieces[side] -= mask;
-		allPieces -= mask;
+		all_pieces -= mask;
 		pieces2[side][piece] -= mask;
 	}
 
 	inline void take(U64 mask, bool side) {
-		allPieces &= ~mask;
-		pieces[side] &= allPieces;
-		pieces2[side][QUEEN] &= allPieces;
-		pieces2[side][ROOK] &= allPieces;
-		pieces2[side][BISHOP] &= allPieces;
-		pieces2[side][KNIGHT] &= allPieces;
-		pieces2[side][PAWN] &= allPieces;
+		all_pieces &= ~mask;
+		pieces[side] &= all_pieces;
+		pieces2[side][QUEEN] &= all_pieces;
+		pieces2[side][ROOK] &= all_pieces;
+		pieces2[side][BISHOP] &= all_pieces;
+		pieces2[side][KNIGHT] &= all_pieces;
+		pieces2[side][PAWN] &= all_pieces;
 	}
 
 };
@@ -132,7 +150,7 @@ void printBitMap(U64 bitMap, char c);
 
 inline ChessBoard createNewBoard() {
 	ChessBoard board;
-	board.allPieces = 0;
+	board.all_pieces = 0;
 	
 	for(int i=0;i<2;i++) {
 		board.pieces[i] = 0;
@@ -146,7 +164,6 @@ inline ChessBoard createNewBoard() {
 	
 	board.sideToMove = 0;
 	
-	board.enPessantPawn = 0;
 	board.enPessantSqr = 0;
 	
 	return board;
@@ -160,185 +177,10 @@ void addNewQueen(ChessBoard &board, int square, bool side);
 void addNewKing(ChessBoard &board, int square, bool side);
 
 
-inline void generateMovesAndCaptures(const ChessBoard &board, const U64 sqrMask, const int piece, const U64 attacks, MovesList &moveList) {
-	if(!attacks) {
-		return;
-	}
-
-	U64 legalMoves = attacks & (attacks^board.allPieces);;
-	U64 captures = attacks & board.pieces[!board.sideToMove];
-
-	U64 to;
-	while(captures) {
-		to = popFirstPiece3(captures);
-		moveList.addCapture(Move(piece, sqrMask, to));
-	}
-	while(legalMoves) {
-		to = popFirstPiece3(legalMoves);
-		moveList.addMove(Move(piece, sqrMask, to));
-	}
-}
-
-
-inline bool generateAttacksMap(const ChessBoard& board, MovesList& movesList) {
-	
-	U64 opositeKing = board.pieces2[!board.sideToMove][KING];
-	
-	SQUARE_T toMove;
-	U64 attacks;
-	U64 sqrMask;
-
-	bool sideToMove = board.sideToMove;
-	
-	U64 queensToMove = board.pieces2[sideToMove][QUEEN];
-	while(queensToMove) {
-		sqrMask=popFirstPiece3(queensToMove, toMove);
-		attacks = getQueenAttacks(board.allPieces, toMove);
-		if(attacks & opositeKing) {
-			return true;
-		}
-
-		generateMovesAndCaptures(board, sqrMask, QUEEN, attacks, movesList);
-	}
-	
-	U64 bishopsToMove = board.pieces2[sideToMove][BISHOP];
-	while(bishopsToMove) {
-		sqrMask=popFirstPiece3(bishopsToMove, toMove);
-		attacks = getBishopAttacks(board.allPieces, toMove);
-		if(attacks & opositeKing) {
-			return true;
-		}
-		generateMovesAndCaptures(board, sqrMask, BISHOP, attacks, movesList);
-	}
-
-	U64 rooksToMove = board.pieces2[sideToMove][ROOK];
-	while(rooksToMove) {
-		sqrMask=popFirstPiece3(rooksToMove, toMove);
-		attacks = getRookAttacks(board.allPieces, toMove);
-		if(attacks & opositeKing) {
-			return true;
-		}
-		generateMovesAndCaptures(board, sqrMask, ROOK, attacks, movesList);
-	}
-
-	U64 knightsToMove = board.pieces2[sideToMove][KNIGHT];
-	while(knightsToMove) {
-		sqrMask=popFirstPiece3(knightsToMove, toMove);
-		attacks = getKnightAttacks(toMove);
-		if(attacks & opositeKing) {
-			return true;
-		}
-		generateMovesAndCaptures(board, sqrMask, KNIGHT, attacks, movesList);
-	}
-
-	U64 pawnsToMove = board.pieces2[sideToMove][PAWN];
-	attacks = getPawnAttacks(pawnsToMove, sideToMove);
-
-	if(attacks & opositeKing) {
-//		printChessBoard(board);
-		return true;
-	}
-
-	U64 kingToMove = board.pieces2[sideToMove][KING];
-	toMove=getFirstPiece2(kingToMove);
-
-	attacks = getKingAttacks(toMove);
-	
-	if(attacks&opositeKing) {
-		return true;
-	}
-
-	generateMovesAndCaptures(board, kingToMove, KING, attacks, movesList);
-
-	return false;
-}
-
-
-
-inline bool checkAttacks(const ChessBoard& board, MovesList& movesList) {
-
-	U64 opositeKing = board.pieces2[!board.sideToMove][KING];
-
-	SQUARE_T toMove;
-	U64 attacks;
-
-	bool sideToMove = board.sideToMove;
-
-	U64 queensToMove = board.pieces2[sideToMove][QUEEN];
-	while(queensToMove) {
-		toMove=popFirstPiece2(&queensToMove);
-		attacks = getQueenCaptures(board.allPieces, toMove);
-		if(attacks & opositeKing) {
-			return true;
-		}
-	}
-
-	U64 bishopsToMove = board.pieces2[sideToMove][BISHOP];
-	while(bishopsToMove) {
-		toMove=popFirstPiece2(&bishopsToMove);
-		attacks = getBishopCaptures(board.allPieces, toMove);
-		if(attacks & opositeKing) {
-			return true;
-		}
-	}
-
-	U64 rooksToMove = board.pieces2[sideToMove][ROOK];
-	while(rooksToMove) {
-		toMove=popFirstPiece2(&rooksToMove);
-		attacks = getRookCaptures(board.allPieces, toMove);
-		if(attacks & opositeKing) {
-			return true;
-		}
-	}
-
-	U64 knightsToMove = board.pieces2[sideToMove][KNIGHT];
-	while(knightsToMove) {
-		toMove=popFirstPiece2(&knightsToMove);
-		attacks = getKnightAttacks(toMove);
-		if(attacks & opositeKing) {
-			return true;
-		}
-	}
-
-	U64 pawnsToMove = board.pieces2[sideToMove][PAWN];
-
-	attacks = getPawnAttacks(pawnsToMove, sideToMove);
-	if(attacks & opositeKing) {
-//		printChessBoard(board);
-		return true;
-	}
-
-	U64 kingToMove = board.pieces2[sideToMove][KING];
-	toMove=getFirstPiece2(kingToMove);
-
-
-	attacks = getKingAttacks(toMove);
-
-	if(attacks & opositeKing) {
-		return true;
-	}
-
-	return false;
-}
-
 bool isOccupated(U64 mask, U64 board); 
 
 
-inline int getPieceToAddForPawn(PIECE_T piece, int promotion) {
-	return piece*(!promotion) + promotion;
-}
-
-inline int getFirstPawnRank(bool side) {
-	return side*40 + 8;
-}
-
-inline int getPromotionRank(bool side) {
-	return !side * 40 + 8;
-}
-
-
 void printBitMap(U64 bitMap, char c);
-
 
 extern char movesCodes[65][3];			
 			

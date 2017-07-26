@@ -4,6 +4,8 @@
 #include "allMoves.h"
 #include "constants.h"
 
+inline U64 getQueenAttacks(const U64 allPieces, const SQUARE_T sqr);
+
 inline U64 getAttacksOnPositiveDirection(const U64 allPieces, const U64 movesOnDir) {
 	U64 potentialBlockers = movesOnDir & allPieces;
 
@@ -28,28 +30,25 @@ inline U64 getAttacksOnPositiveDirection(const U64 allPieces, const U64 movesOnD
 	return movesOnDir;
 };
 
-inline U64 getCaptureOnPositiveDirection(const U64 allPieces, const U64 movesOnDir) {
-	U64 potentialBlockers = movesOnDir & allPieces;
 
-	if(potentialBlockers) {
-		return getFirstPieceMask(potentialBlockers);
+
+inline bool checkCaptureOnPositiveDirection(const U64 pieces, const U64 movesOnDir, const U64 attackers) {
+
+	if(movesOnDir & attackers) {
+		U64 potentialBlockers = movesOnDir & pieces;
+		return potentialBlockers ? (attackers & getFirstPieceMask(potentialBlockers)): 0;
 	}
-	return 0;
+	return false;
 };
 
-inline U64 getCaptureOnNegativeDirection(const U64 allPieces, const U64 movesOnDir) {
-	U64 potentialBlockers = movesOnDir & allPieces;
+inline bool checkCaptureOnNegativeDirection(const U64 allPieces, const U64 movesOnDir, const U64 attackers) {
 
-	if(potentialBlockers) {
-		return getLastPieceMask(potentialBlockers);
+	if(movesOnDir & attackers) {
+		U64 potentialBlockers = movesOnDir & allPieces;
+		return potentialBlockers ? attackers & getLastPieceMask(potentialBlockers): 0;
 	}
-	return 0;
+	return false;
 };
-
-//inline U64 getAttacksOnPositiveDirection(const U64 allPieces, const U64 movesOnDir) {
-//	U64 potentialBlockers = movesOnDir & allPieces;
-//	return potentialBlockers ? (movesOnDir & (getFirstPieceMask(potentialBlockers) - 1))|getFirstPieceMask(potentialBlockers) : movesOnDir;
-//};
 
 inline U64 getAttacksOnNegativeDirection(const U64 allPieces, const U64 movesOnDir) {
 	U64 potentialBlockers = movesOnDir & allPieces;
@@ -109,47 +108,10 @@ inline U64 getRookAttacks(const U64 allPieces, const SQUARE_T sqr) {
 	const U64 (* moves) = queenMoves[sqr];
 
 	U64 legalMoves = getAttacksOnPositiveDirection(allPieces, moves[N]);
+
 	legalMoves|=getAttacksOnPositiveDirection(allPieces, moves[E]);
 	legalMoves|=getAttacksOnNegativeDirection(allPieces, moves[S]);
 	legalMoves|=getAttacksOnNegativeDirection(allPieces, moves[W]);
-
-	return legalMoves;
-}
-
-
-inline U64 getBishopCaptures(const U64 allPieces, const SQUARE_T sqr) {
-	const U64 (* moves) = queenMoves[sqr];
-
-	U64 legalMoves = getCaptureOnPositiveDirection(allPieces, moves[NE]);
-	legalMoves|=getCaptureOnNegativeDirection(allPieces, moves[SE]);
-	legalMoves|=getCaptureOnNegativeDirection(allPieces, moves[SW]);
-	legalMoves|=getCaptureOnPositiveDirection(allPieces, moves[NW]);
-
-	return legalMoves;
-}
-
-inline U64 getQueenCaptures(const U64 allPieces, const SQUARE_T sqr) {
-	const U64 (* moves) = queenMoves[sqr];
-
-	U64 legalMoves = getCaptureOnPositiveDirection(allPieces, moves[N]);
-	legalMoves|=getCaptureOnPositiveDirection(allPieces, moves[NE]);
-	legalMoves|=getCaptureOnPositiveDirection(allPieces, moves[E]);
-	legalMoves|=getCaptureOnNegativeDirection(allPieces, moves[SE]);
-	legalMoves|=getCaptureOnNegativeDirection(allPieces, moves[S]);
-	legalMoves|=getCaptureOnNegativeDirection(allPieces, moves[SW]);
-	legalMoves|=getCaptureOnNegativeDirection(allPieces, moves[W]);
-	legalMoves|=getCaptureOnPositiveDirection(allPieces, moves[NW]);
-
-	return legalMoves;
-};
-
-inline U64 getRookCaptures(const U64 allPieces, const SQUARE_T sqr) {
-	const U64 (* moves) = queenMoves[sqr];
-
-	U64 legalMoves = getCaptureOnPositiveDirection(allPieces, moves[N]);
-	legalMoves|=getCaptureOnPositiveDirection(allPieces, moves[E]);
-	legalMoves|=getCaptureOnNegativeDirection(allPieces, moves[S]);
-	legalMoves|=getCaptureOnNegativeDirection(allPieces, moves[W]);
 
 	return legalMoves;
 }

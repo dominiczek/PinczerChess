@@ -4,6 +4,7 @@
 typedef int SQUARE_T;
 typedef unsigned long long U64;
 typedef int PIECE_T;
+typedef int CASTLE_T;
 
 const bool WHITE = 0;
 const bool BLACK = 1;
@@ -14,6 +15,12 @@ const PIECE_T ROOK = 2;
 const PIECE_T BISHOP = 3;
 const PIECE_T KNIGHT = 4;
 const PIECE_T PAWN = 5;
+
+const CASTLE_T NO_CASTLE = 0;
+const CASTLE_T WHITE_KING_SIDE = 1;
+const CASTLE_T WHITE_QUEEN_SIDE = 2;
+const CASTLE_T BLACK_KING_SIDE = 3;
+const CASTLE_T BLACK_QUEEN_SIDE = 4;
 
 
 enum FIELD {A1=0, B1, C1, D1, E1, F1, G1, H1, A2, B2, C2, D2, E2, F2, G2, H2,

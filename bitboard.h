@@ -9,6 +9,13 @@ const U64 FULL_FIRST_RANK = 255;
 const U64 RANKS_A_TO_G = 18374403900871474942;
 const U64 RANKS_B_TO_H = 9187201950435737471;
 
+const U64 WHITE_FIRST_RANK_PAWNS = FULL_FIRST_RANK << 8;
+const U64 BLACK_FIRST_RANK_PAWNS = FULL_FIRST_RANK << 48;
+
+const U64 WHITE_PROMOTION_RANK_PAWNS = FULL_FIRST_RANK << 48;
+const U64 BLACK_PROMOTION_RANK_PAWNS = FULL_FIRST_RANK << 8;
+
+
 inline U64 moveForward(const U64 sqrMask, const int delta, const bool side) {
 	return side? sqrMask >> delta : sqrMask << delta;
 }
@@ -38,6 +45,7 @@ inline U64 getLastPieceMask(const U64 &board) {
 	return TWO_TO_63 >> __builtin_clzll(board);
 }
 
+
 inline SQUARE_T popFirstPiece2(U64 *board) {
 	SQUARE_T pos = __builtin_ctzll(*board);
 	*board &= *board - 1LL;
@@ -57,9 +65,11 @@ inline U64 popFirstPiece3(U64 &board, SQUARE_T &pos) {
 	return old - board;
 }
 
-inline U64 getPiecesOnRank(U64 board, int rankShift) {
-	return board & (FULL_FIRST_RANK<<(rankShift));
+inline U64 getFirstPiece3(const U64 board, SQUARE_T &pos) {
+	pos = __builtin_ctzll(board);
+	return board & (~(board - 1LL));
 }
+
 
 
 #endif

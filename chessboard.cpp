@@ -17,42 +17,42 @@ char movesCodes[65][3] = {"no",	"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", 
 void addNewPawn(ChessBoard &board, int square, bool side) {
 	U64 mask = 1LL<<(square-1);
 	board.pieces[side] |= mask;
-	board.allPieces |= mask;
+	board.all_pieces |= mask;
 	board.pieces2[side][PAWN] |= mask;
 }
 
 void addNewKnight(ChessBoard &board, int square, bool side) {
 	U64 mask = 1LL<<(square-1);
 	board.pieces[side] |= mask;
-	board.allPieces |= mask;
+	board.all_pieces |= mask;
 	board.pieces2[side][KNIGHT] |= mask;
 }
 
 void addNewBishop(ChessBoard &board, int square, bool side) {
 	U64 mask = 1LL<<(square-1);
 	board.pieces[side] |= mask;
-	board.allPieces |= mask;
+	board.all_pieces |= mask;
 	board.pieces2[side][BISHOP] |= mask;
 }
 
 void addNewRook(ChessBoard &board, int square, bool side) {
 	U64 mask = 1LL<<(square-1);
 	board.pieces[side] |= mask;
-	board.allPieces |= mask;
+	board.all_pieces |= mask;
 	board.pieces2[side][ROOK] |= mask;
 }
 
 void addNewQueen(ChessBoard &board, int square, bool side) {
 	U64 mask = 1LL<<(square-1);
 	board.pieces[side] |= mask;
-	board.allPieces |= mask;
+	board.all_pieces |= mask;
 	board.pieces2[side][QUEEN] |= mask;
 }
 
 void addNewKing(ChessBoard &board, int square, bool side) {
 	U64 mask = 1LL<<(square-1);
 	board.pieces[side] |= mask;
-	board.allPieces |= mask;
+	board.all_pieces |= mask;
 	board.pieces2[side][KING] |= mask;
 }
 

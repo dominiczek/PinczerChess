@@ -44,14 +44,24 @@ public:
 class MovesList {
 
 private:
+	Move kingMoves[8];
 	Move moves[256];
 	Move captures[128];
 	Move promotions[32];
+
+	Move *kingMovesHead = kingMoves;
 	Move *movesHead = moves;
 	Move *capturesHead = captures;
 	Move *promotionsHead = promotions;
 public:
 
+	MovesList() {
+
+	}
+
+	inline void addKingMove(const Move &move) {
+		*kingMovesHead++=move;
+	}
 	inline void addMove(const Move &move) {
 		*movesHead++=move;
 	}
