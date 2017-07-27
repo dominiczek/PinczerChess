@@ -5,8 +5,10 @@
 #include "pawnsMoves.h"
 #include "movesGenerator.h"
 
+template <bool sideToMove>
 signed long long PerftPromotion(const ChessBoard &board, MovesList &move_list, int depth);
 
+template <bool sideToMove>
 signed long long Perft(const ChessBoard &board, MovesList &move_list, int depth) {
 
 	depth--;
@@ -19,15 +21,15 @@ signed long long Perft(const ChessBoard &board, MovesList &move_list, int depth)
     	Move move = *moves++;
         ChessBoard copy = board.makePromotion(move);
 
-        if(isSquareAttacked(copy.opositeKing(), copy)) {
+        if(isSquareAttacked<!sideToMove>(copy.opositeKing(), copy)) {
         	continue;
         }
 
         if(depth) {
         	MovesList new_move_list;
-            generateMovesPromotion(copy, new_move_list);
-            generatePawnsMoves(copy, new_move_list);
-        	nodes += PerftPromotion(copy, new_move_list, depth);
+            generateMovesPromotion<!sideToMove>(copy, new_move_list);
+            generatePawnsMoves<!sideToMove>(copy, new_move_list);
+        	nodes += PerftPromotion<!sideToMove>(copy, new_move_list, depth);
         } else {
         	nodes++;
         }
@@ -40,36 +42,36 @@ signed long long Perft(const ChessBoard &board, MovesList &move_list, int depth)
     	Move move = *moves++;
         ChessBoard copy = board.makeMove(move);
 
-        if(isSquareAttacked(copy.opositeKing(), copy)) {
+        if(isSquareAttacked<!sideToMove>(copy.opositeKing(), copy)) {
         	continue;
         }
 
         if(depth) {
         	MovesList new_move_list;
-            generateMoves(copy, new_move_list);
-            generatePawnsMoves(copy, new_move_list);
-        	nodes += Perft(copy, new_move_list, depth);
+            generateMoves<!sideToMove>(copy, new_move_list);
+            generatePawnsMoves<!sideToMove>(copy, new_move_list);
+        	nodes += Perft<!sideToMove>(copy, new_move_list, depth);
         } else {
         	nodes++;
         }
 //        printChessBoard(copy);
     }
 
-    Move* captures = move_list.getCaptures();
+    Capture* captures = move_list.getCaptures();
 
 	while(move_list.hasNextCapture(captures)) {
-    	Move move = *captures++;
+		Capture move = *captures++;
         ChessBoard copy = board.makeCapture(move);
 
-        if(isSquareAttacked(copy.opositeKing(), copy)) {
+        if(isSquareAttacked<!sideToMove>(copy.opositeKing(), copy)) {
         	continue;
         }
 
         if(depth) {
         	MovesList new_move_list;
-			generateMoves(copy, new_move_list);
-			generatePawnsMoves(copy, new_move_list);
-			nodes += Perft(copy, new_move_list, depth);
+			generateMoves<!sideToMove>(copy, new_move_list);
+			generatePawnsMoves<!sideToMove>(copy, new_move_list);
+			nodes += Perft<!sideToMove>(copy, new_move_list, depth);
 		} else {
 			nodes++;
 		}
@@ -78,6 +80,7 @@ signed long long Perft(const ChessBoard &board, MovesList &move_list, int depth)
     return nodes;
 }
 
+template <bool sideToMove>
 signed long long PerftPromotion(const ChessBoard &board, MovesList &move_list, int depth) {
 
 	depth--;
@@ -90,15 +93,15 @@ signed long long PerftPromotion(const ChessBoard &board, MovesList &move_list, i
     	Move move = *moves++;
         ChessBoard copy = board.makePromotion(move);
 
-        if(isSquareAttacked(copy.opositeKing(), copy)) {
+        if(isSquareAttacked<!sideToMove>(copy.opositeKing(), copy)) {
         	continue;
         }
 
         if(depth) {
         	MovesList new_move_list;
-            generateMovesPromotion(copy, new_move_list);
-            generatePawnsMoves(copy, new_move_list);
-        	nodes += PerftPromotion(copy, new_move_list, depth);
+            generateMovesPromotion<!sideToMove>(copy, new_move_list);
+            generatePawnsMoves<!sideToMove>(copy, new_move_list);
+        	nodes += PerftPromotion<!sideToMove>(copy, new_move_list, depth);
         } else {
         	nodes++;
         }
@@ -112,36 +115,36 @@ signed long long PerftPromotion(const ChessBoard &board, MovesList &move_list, i
     	Move move = *moves++;
         ChessBoard copy = board.makeMove(move);
 
-        if(isSquareAttacked(copy.opositeKing(), copy)) {
+        if(isSquareAttacked<!sideToMove>(copy.opositeKing(), copy)) {
         	continue;
         }
 
         if(depth) {
         	MovesList new_move_list;
-            generateMovesPromotion(copy, new_move_list);
-            generatePawnsMoves(copy, new_move_list);
-        	nodes += PerftPromotion(copy, new_move_list, depth);
+            generateMovesPromotion<!sideToMove>(copy, new_move_list);
+            generatePawnsMoves<!sideToMove>(copy, new_move_list);
+        	nodes += PerftPromotion<!sideToMove>(copy, new_move_list, depth);
         } else {
         	nodes++;
         }
 //        printChessBoard(copy);
     }
 
-    Move* captures = move_list.getCaptures();
+    Capture* captures = move_list.getCaptures();
 
 	while(move_list.hasNextCapture(captures)) {
-    	Move move = *captures++;
+		Capture move = *captures++;
         ChessBoard copy = board.makeCapture(move);
 
-        if(isSquareAttacked(copy.opositeKing(), copy)) {
+        if(isSquareAttacked<!sideToMove>(copy.opositeKing(), copy)) {
         	continue;
         }
 
         if(depth) {
         	MovesList new_move_list;
-			generateMovesPromotion(copy, new_move_list);
-			generatePawnsMoves(copy, new_move_list);
-			nodes += PerftPromotion(copy, new_move_list, depth);
+			generateMovesPromotion<!sideToMove>(copy, new_move_list);
+			generatePawnsMoves<!sideToMove>(copy, new_move_list);
+			nodes += PerftPromotion<!sideToMove>(copy, new_move_list, depth);
 		} else {
 			nodes++;
 		}

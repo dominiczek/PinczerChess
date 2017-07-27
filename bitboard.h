@@ -15,21 +15,34 @@ const U64 BLACK_FIRST_RANK_PAWNS = FULL_FIRST_RANK << 48;
 const U64 WHITE_PROMOTION_RANK_PAWNS = FULL_FIRST_RANK << 48;
 const U64 BLACK_PROMOTION_RANK_PAWNS = FULL_FIRST_RANK << 8;
 
+template <bool sideToMove>
+inline U64 moveForward(const U64 sqrMask, const int delta);
+
+template <>
+inline U64 moveForward<BLACK>(const U64 sqrMask, const int delta) {
+	return sqrMask >> delta;
+}
+
+template <>
+inline U64 moveForward<WHITE>(const U64 sqrMask, const int delta) {
+	return sqrMask << delta;
+}
+
+template <bool sideToMove>
+inline U64 moveBackward(const U64 sqrMask, const int delta);
+
+template <>
+inline U64 moveBackward<BLACK>(const U64 sqrMask, const int delta) {
+	return sqrMask << delta;
+}
+
+template <>
+inline U64 moveBackward<WHITE>(const U64 sqrMask, const int delta) {
+	return sqrMask >> delta;
+}
 
 inline U64 moveForward(const U64 sqrMask, const int delta, const bool side) {
 	return side? sqrMask >> delta : sqrMask << delta;
-}
-
-inline U64 moveForward(const U64 sqrMask, const int deltaWhite, const int deltaBlack, const bool side) {
-	return side? sqrMask >> deltaBlack : sqrMask << deltaWhite;
-}
-
-inline U64 moveBackward(const U64 sqrMask, const int delta, const bool side) {
-	return side? sqrMask << delta : sqrMask >> delta;
-}
-
-inline U64 moveBackward(const U64 sqrMask, const int deltaWhite, const int deltaBlack, const bool side) {
-	return side? sqrMask << deltaBlack : sqrMask >> deltaWhite;
 }
 
 inline SQUARE_T getFirstPiece2(const U64 &board) {

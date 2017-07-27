@@ -58,12 +58,12 @@ public:
 		return copy;
 	}
 
-	inline ChessBoard makeCapture(const Move& move) const {
+	inline ChessBoard makeCapture(const Capture& move) const {
 
 		ChessBoard copy = createCopy(*this);
 
 
-		copy.take(move.maskTo, !sideToMove);
+		copy.take(move.maskTo, !sideToMove, move.capturedPiece);
 
 		PIECE_T pieceToAdd = move.promotion ? move.promotion : move.piece;
 
@@ -79,6 +79,26 @@ public:
 		copy.sideToMove = !sideToMove;
 
 		return copy;
+	}
+
+	inline PIECE_T getOppositePiece(const U64 sqrMask) const {
+		if(pieces2[!sideToMove][PAWN] & sqrMask) {
+			return PAWN;
+		}
+		if(pieces2[!sideToMove][KNIGHT] & sqrMask) {
+			return KNIGHT;
+		}
+		if(pieces2[!sideToMove][BISHOP] & sqrMask) {
+			return BISHOP;
+		}
+		if(pieces2[!sideToMove][QUEEN] & sqrMask) {
+			return QUEEN;
+		}
+		if(pieces2[!sideToMove][ROOK] & sqrMask) {
+			return ROOK;
+		}
+
+		return 0;
 	}
 
 	inline U64 allPieces() const {
@@ -133,14 +153,10 @@ private:
 		pieces2[side][piece] -= mask;
 	}
 
-	inline void take(U64 mask, bool side) {
+	inline void take(U64 mask, bool side, PIECE_T capturedPiece) {
 		all_pieces &= ~mask;
 		pieces[side] &= all_pieces;
-		pieces2[side][QUEEN] &= all_pieces;
-		pieces2[side][ROOK] &= all_pieces;
-		pieces2[side][BISHOP] &= all_pieces;
-		pieces2[side][KNIGHT] &= all_pieces;
-		pieces2[side][PAWN] &= all_pieces;
+		pieces2[side][capturedPiece] &= all_pieces;
 	}
 
 };

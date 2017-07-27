@@ -16,6 +16,9 @@ inline U64 getAttacksOnPositiveDirection(const U64 allPieces, const U64 movesOnD
 //		return movesOnDir & (potentialBlockers^(potentialBlockers-1LL));
 //	}
 
+
+
+
 	if(potentialBlockers) {
 		U64 blocker = getFirstPieceMask(potentialBlockers);
 		U64 allowedSquares = blocker - 1;
@@ -29,6 +32,7 @@ inline U64 getAttacksOnPositiveDirection(const U64 allPieces, const U64 movesOnD
 	}
 	return movesOnDir;
 };
+//TEST :)
 
 
 
@@ -63,19 +67,76 @@ inline U64 getAttacksOnNegativeDirection(const U64 allPieces, const U64 movesOnD
 	return movesOnDir;
 };
 
-inline U64 getPawnAttacks(const U64 pawns, const bool side) {
 
-	U64 captures = moveForward(pawns & RANKS_A_TO_G, 7 ,9, side);
-	captures|=moveForward(pawns & RANKS_B_TO_H, 9, 7, side);
+template <bool sideToMove>
+inline U64 getPawnAttacks(const U64 pawns);
+
+template <>
+inline U64 getPawnAttacks<WHITE>(const U64 pawns) {
+
+	U64 captures =  (pawns & RANKS_A_TO_G) << 7;
+	captures |= (pawns & RANKS_B_TO_H) <<9;
 	return captures;
 }
 
-inline U64 getPawnAttacksRight(const U64 pawns, const bool side) {
-	return moveForward(pawns & RANKS_A_TO_G, 7, 9, side);
+template <>
+inline U64 getPawnAttacks<BLACK>(const U64 pawns) {
+
+	U64 captures =  (pawns & RANKS_A_TO_G) >> 9;
+	captures |= (pawns & RANKS_B_TO_H) >>7;
+	return captures;
 }
 
-inline U64 getPawnAttacksLeft(const U64 pawns, const bool side) {
-	return moveForward(pawns & RANKS_B_TO_H, 9, 7, side);;
+template <bool sideToMove>
+inline U64 getPawnAttacksLeft(const U64 pawns);
+
+template <>
+inline U64 getPawnAttacksLeft<WHITE>(const U64 pawns) {
+	return (pawns & RANKS_B_TO_H) <<9;
+}
+
+template <>
+inline U64 getPawnAttacksLeft<BLACK>(const U64 pawns) {
+	return (pawns & RANKS_B_TO_H) >>7;
+}
+
+template <bool sideToMove>
+inline U64 getPawnBackwardMoveLeft(const U64 pawn);
+
+template <>
+inline U64 getPawnBackwardMoveLeft<WHITE>(const U64 pawn) {
+	return pawn >>9;
+}
+
+template <>
+inline U64 getPawnBackwardMoveLeft<BLACK>(const U64 pawn) {
+	return pawn <<7;
+}
+
+template <bool sideToMove>
+inline U64 getPawnAttacksRight(const U64 pawns);
+
+template <>
+inline U64 getPawnAttacksRight<WHITE>(const U64 pawns) {
+	return (pawns & RANKS_A_TO_G) << 7;
+}
+
+template <>
+inline U64 getPawnAttacksRight<BLACK>(const U64 pawns) {
+	return (pawns & RANKS_A_TO_G) >> 9;
+}
+
+template <bool sideToMove>
+inline U64 getPawnBackwardMoveRight(const U64 pawn);
+
+template <>
+inline U64 getPawnBackwardMoveRight<WHITE>(const U64 pawn) {
+	return pawn >> 7;
+}
+
+template <>
+inline U64 getPawnBackwardMoveRight<BLACK>(const U64 pawn) {
+	return pawn << 9;
 }
 
 inline U64 getBishopAttacks(const U64 allPieces, const SQUARE_T sqr) {

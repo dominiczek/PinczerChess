@@ -45,14 +45,24 @@ void run() {
 	//4 - 197,281
 	//5  4,865,609 - OK
 	//6  119060324 - OK
-
+	//	 249753873
 
     MovesList move_list;
-    generateMoves(board, move_list);
-    generatePawnsMoves(board, move_list);
 
 
-	cout<<"Moves: "<<Perft(board, move_list, 6)<<endl;
+    int level = 7;
+    cout<<"Level: " << level <<endl;
+
+    if(board.sideToMove) {
+    	generateMoves<BLACK>(board, move_list);
+    	generatePawnsMoves<BLACK>(board, move_list);
+    	cout<<"Moves: "<<Perft<BLACK>(board, move_list, level)<<endl;
+    } else {
+    	generateMoves<WHITE>(board, move_list);
+    	generatePawnsMoves<WHITE>(board, move_list);
+    	cout<<"Moves: "<<Perft<WHITE>(board, move_list, level)<<endl;
+    }
+
 
 //	printBitMap(1+(1<<8), '1');
 }

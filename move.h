@@ -14,7 +14,7 @@ public:
 	int promotion;
 	int castle;
 
-	inline Move(const PIECE_T piece, const U64 from, const U64 to, const U64 enPessant = 0) {
+	inline Move(const PIECE_T piece,  const U64 from, const U64 to, const U64 enPessant = 0) {
 		this->piece = piece;
 		this->maskFrom = from;
 		this->maskTo = to;
@@ -37,21 +37,51 @@ public:
 	Move() {
 
 	}
+};
 
+class Capture {
 
+public:
+
+	U64 maskFrom;
+	U64 maskTo;
+	PIECE_T piece;
+	PIECE_T capturedPiece;
+	int promotion;
+
+	inline Capture(const PIECE_T piece,  const U64 from, const U64 to, const PIECE_T capturecPiece) {
+		this->piece = piece;
+		this->maskFrom = from;
+		this->maskTo = to;
+
+		this->capturedPiece = capturecPiece;
+
+		this->promotion = 0;
+	}
+
+	inline Capture(const PIECE_T piece,  const int promotion, const U64 from, const U64 to, const PIECE_T capturedPiece) {
+		this->piece = piece;
+		this->maskFrom = from;
+		this->maskTo = to;
+
+		this->capturedPiece = capturedPiece;
+		this->promotion = promotion;
+	}
+
+	Capture() {
+
+	}
 };
 
 class MovesList {
 
 private:
-	Move kingMoves[8];
 	Move moves[256];
-	Move captures[128];
+	Capture captures[128];
 	Move promotions[32];
 
-	Move *kingMovesHead = kingMoves;
 	Move *movesHead = moves;
-	Move *capturesHead = captures;
+	Capture *capturesHead = captures;
 	Move *promotionsHead = promotions;
 public:
 
@@ -59,19 +89,16 @@ public:
 
 	}
 
-	inline void addKingMove(const Move &move) {
-		*kingMovesHead++=move;
-	}
 	inline void addMove(const Move &move) {
 		*movesHead++=move;
 	}
-	inline void addCapture(const Move &move) {
+	inline void addCapture(const Capture &move) {
 		*capturesHead++=move;
 	}
 	inline void addPromotion(const Move &move) {
 		*promotionsHead++=move;
 	}
-	inline Move* getCaptures() {
+	inline Capture* getCaptures() {
 		return captures;
 	}
 	inline Move* getMoves() {
@@ -83,7 +110,7 @@ public:
 	inline bool hasNextMove(Move* current) {
 		return movesHead != current;
 	}
-	inline bool hasNextCapture(Move* current) {
+	inline bool hasNextCapture(Capture* current) {
 		return capturesHead != current;
 	}
 	inline bool hasNextPromotion(Move* current) {
